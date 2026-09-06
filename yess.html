@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You... ✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #09090b, #1e1b4b, #271033);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Optimized Starfield using GPU Acceleration */
+        .stars {
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            pointer-events: none;
+            z-index: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: moveStars 60s linear infinite;
+            will-change: transform;
+            transform: translateZ(0); /* Force GPU */
+        }
+        @keyframes moveStars {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-150px, -150px, 0); }
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease;
+            z-index: 10;
+            padding: 20px;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.5); /* Removed heavy blur */
+            will-change: opacity, transform;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+            z-index: -1;
+        }
+
+        .active {
+            opacity: 1;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.2rem;
+            color: #f472b6;
+            text-shadow: 0 0 25px rgba(244, 114, 182, 0.4);
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            max-width: 600px;
+            font-weight: 300;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            border: none;
+            color: #fff;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            will-change: transform;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(236, 72, 153, 0.6); }
+
+        /* Lock Screen Elements */
+        .lock-icon { font-size: 3rem; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .password-input {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(244, 114, 182, 0.4);
+            padding: 15px 20px;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 250px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .password-input:focus { border: 1px solid #f472b6; box-shadow: 0 0 15px rgba(244,114,182,0.3); }
+        .error-msg { color: #fb7185; font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px; display: none; }
+
+        /* Game Elements */
+        #score-board {
+            position: absolute; top: 25px; font-size: 1.2rem; font-weight: 500;
+            color: #f472b6; background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 20px;
+            border-radius: 20px;
+        }
+        
+        /* Optimized Orbs */
+        .orb {
+            position: absolute; width: 45px; height: 45px;
+            background: radial-gradient(circle, #fff, #f472b6);
+            border-radius: 50%; box-shadow: 0 0 15px #f472b6;
+            cursor: pointer; transition: all 0.3s ease-out;
+            display: flex; justify-content: center; align-items: center;
+            color: transparent; font-weight: 500; font-size: 0.95rem;
+            animation: floatOrb 3s ease-in-out infinite alternate;
+            will-change: transform, opacity, width;
+        }
+        @keyframes floatOrb {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            100% { transform: translate3d(0, -15px, 0) scale(1.05); }
+        }
+        .orb.clicked {
+            width: 150px; height: 45px; border-radius: 22px;
+            background: rgba(236, 72, 153, 0.8); box-shadow: 0 0 20px rgba(244, 114, 182, 0.5);
+            color: #fff; pointer-events: none; animation: none;
+        }
+
+        /* Mini Popup (Toast) */
+        .toast {
+            position: absolute; top: 80px; background: rgba(236, 72, 153, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2); padding: 10px 25px;
+            border-radius: 20px; color: #fff; font-size: 1rem;
+            opacity: 0; transform: translate3d(0, -20px, 0); transition: all 0.4s ease;
+            pointer-events: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .toast.show { opacity: 1; transform: translate3d(0, 0, 0); }
+
+        /* Loader */
+        .loader-container { width: 80%; max-width: 350px; background: rgba(255, 255, 255, 0.1); border-radius: 20px; height: 8px; margin-top: 25px; overflow: hidden; transform: translateZ(0); }
+        .loader-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #f472b6, #8b5cf6); box-shadow: 0 0 10px #f472b6; transition: width 0.1s linear; }
+        
+        /* Dramatic Sentence Screen */
+        #screen-sentence { background: #000; }
+        #screen-sentence p { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-style: italic; line-height: 1.6; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.4); max-width: 800px; padding: 20px; }
+
+        /* Final Glass Card */
+        .glass-card {
+            background: rgba(30, 20, 50, 0.7); border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 40px; border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.7); max-width: 650px; width: 90%;
+            max-height: 85vh; overflow-y: auto; text-align: center;
+            transform: translateZ(0);
+        }
+        .glass-card h2 { font-family: 'Playfair Display', serif; color: #f472b6; font-size: 2.2rem; margin-bottom: 20px; border-bottom: 1px solid rgba(244, 114, 182, 0.2); padding-bottom: 15px; }
+        .glass-card p { color: #e2e8f0; font-size: 1.05rem; text-align: justify; margin-bottom: 15px; line-height: 1.9; }
+        
+        .promises { text-align: left; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; margin: 25px 0; border-left: 3px solid #f472b6; }
+        .promises h3 { font-family: 'Playfair Display', serif; color: #f472b6; margin-top: 0; margin-bottom: 10px; font-size: 1.3rem; }
+        .promises ul { list-style: none; padding: 0; margin: 0; }
+        .promises li { color: #fff; font-weight: 300; margin-bottom: 10px; font-size: 1.05rem; }
+        .promises li::before { content: "✨ "; }
+
+        .polaroid {
+            background: #fff; padding: 10px 10px 20px 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            border-radius: 2px; display: inline-block; margin: 20px 0; transform: rotate(-2deg);
+        }
+        .polaroid img { max-width: 100%; width: 220px; height: auto; border: 1px solid #eee; display: block; }
+        .polaroid-caption { font-family: 'Caveat', cursive; color: #333; font-size: 1.6rem; margin-top: 15px; margin-bottom: 0; text-align: center; }
+
+        .glass-card::-webkit-scrollbar { width: 5px; }
+        .glass-card::-webkit-scrollbar-track { background: transparent; }
+        .glass-card::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+    <div class="stars"></div>
+
+    <div id="screen-lock" class="screen active">
+        <div class="lock-icon">🔒</div>
+        <h1>The Secret Gate</h1>
+        <p id="security-question">Loading question...</p>
+        <input type="text" id="passwordInput" class="password-input" placeholder="Type your answer here..." autocomplete="off">
+        <div id="error-msg" class="error-msg">That's not it, my love. Try again.</div>
+        <button class="btn" onclick="checkPassword()">Unlock My World</button>
+    </div>
+
+    <div id="screen-start" class="screen hidden">
+        <h1>50 Reasons Why... ✨</h1>
+        <p>I collected 50 things that make you completely unforgettable. Let's discover them together, one glowing star at a time.</p>
+        <button class="btn" onclick="startGame()">Start the Journey</button>
+    </div>
+
+    <div id="screen-game" class="screen hidden">
+        <div id="score-board">Collected: <span id="score">0</span> / 50</div>
+        <div id="toast-msg" class="toast">Message here</div>
+        <p style="position: absolute; bottom: 30px; font-size: 0.95rem; opacity: 0.7;">Tap the glowing stars to reveal the traits ✨</p>
+        <div id="orbs-container"></div>
+    </div>
+
+    <div id="screen-loading" class="screen hidden">
+        <p id="loading-text">Analyzing traits...</p>
+        <div class="loader-container">
+            <div id="loader-bar" class="loader-bar"></div>
+        </div>
+    </div>
+
+    <div id="screen-sentence" class="screen hidden">
+        <p id="dramatic-text">Loading...</p>
+    </div>
+
+    <div id="screen-final" class="screen hidden">
+        <div class="glass-card">
+            <h2>To the One Who Brightens My World 🤍</h2>
+            <p>Every single star you just collected represents a tiny piece of what makes you so overwhelmingly special to me. But even 50, or a thousand stars, could never truly capture how incredible you really are.</p>
+            <p>I wanted to create something entirely unique for you—something as gentle, beautiful, and radiant as your soul. The truth is, my feelings for you have grown far beyond simple admiration. You've become my favorite thought in the morning and my peaceful escape at night.</p>
+            
+            <div class="promises">
+                <h3>My 3 Promises to You:</h3>
+                <ul>
+                    <li>I promise to always protect your heart and your peace.</li>
+                    <li>I promise to choose you, in every lifetime, in every reality.</li>
+                    <li>I promise to be your safest place when the world gets heavy.</li>
+                </ul>
+            </div>
+
+            <p>Thank you for simply existing, for being the reason I smile for no reason, and for making my world infinitely better just by being in it. Let's make every tomorrow as bright as you are.</p>
+            
+            <div class="polaroid">
+                <img src="photo.jpg" alt="Us">
+                <p class="polaroid-caption">My favorite view ❤️</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // ⚙️ إعداداتك الخاصة
+        // =========================================================================
+        const herName = "Yessmin"; 
+        const secretQuestion = "Where did we first meet? (One word)";
+        const secretAnswer = "love"; 
+        const theGreatSentence = "If I had to live my life over again, I would find you sooner so I could love you longer.";
+        // =========================================================================
+
+        document.getElementById('security-question').innerText = secretQuestion;
+        document.getElementById('dramatic-text').innerText = `"${theGreatSentence}"`;
+
+        const traits = [
+            "Your smile", "Your kindness", "Your laughter", "Your eyes", "Your mind",
+            "Your warmth", "Your grace", "Your energy", "Your patience", "Your cute habits",
+            "Your honesty", "Your dreams", "Your soul", "Your presence", "Your voice",
+            "Your passion", "Your style", "Your sweetness", "Your strength", "Your pure heart",
+            "Your creativity", "Your charm", "Your intuition", "Your optimism", "Your support",
+            "Your intelligence", "Your glowing aura", "Your peaceful vibe", "Your beautiful thoughts", "Your adorable quirks",
+            "Your gentle touch", "Your inspiring words", "Your deep conversations", "Your vibrant spirit", "Your comforting words",
+            "Your unique perspective", "Your lovely humor", "Your radiant face", "Your caring nature", "Your precious time",
+            "Your shining hope", "Your lovely company", "Your endless grace", "Your sparkling eyes", "Your sweet texts",
+            "Your warm hugs", "Your magical existence", "Your wonderful mind", "Your unforgettable impact", "Simply... You ❤️"
+        ];
+
+        let currentBatchIndex = 0;
+        let totalCollected = 0;
+        const batchSize = 10; 
+
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value.trim().toLowerCase();
+            const correct = secretAnswer.trim().toLowerCase();
+
+            if(input === correct) {
+                const music = document.getElementById('bgMusic');
+                music.volume = 0.5;
+                music.play().catch(e => console.log("Audio waiting."));
+
+                document.getElementById('screen-lock').classList.remove('active');
+                document.getElementById('screen-lock').classList.add('hidden');
+                
+                setTimeout(() => {
+                    document.getElementById('screen-start').classList.remove('hidden');
+                    document.getElementById('screen-start').classList.add('active');
+                }, 800);
+            } else {
+                const errMsg = document.getElementById('error-msg');
+                errMsg.style.display = 'block';
+                setTimeout(() => errMsg.style.display = 'none', 3000);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('screen-start').classList.remove('active');
+            document.getElementById('screen-start').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('screen-game').classList.remove('hidden');
+                document.getElementById('screen-game').classList.add('active');
+                loadBatch();
+            }, 800);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-msg');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        function loadBatch() {
+            const container = document.getElementById('orbs-container');
+            container.innerHTML = ''; 
+
+            const start = currentBatchIndex * batchSize;
+            const end = Math.min(start + batchSize, traits.length);
+            const currentTraits = traits.slice(start, end);
+
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            currentTraits.forEach((trait) => {
+                const orb = document.createElement('div');
+                orb.classList.add('orb');
+                
+                let x = Math.random() * (w - 150) + 70;
+                let y = Math.random() * (h - 250) + 100;
+                orb.style.left = `${x}px`; orb.style.top = `${y}px`;
+                orb.style.animationDelay = `${Math.random() * 2}s`;
+                
+                orb.onclick = function() {
+                    if(!this.classList.contains('clicked')) {
+                        this.classList.add('clicked');
+                        this.innerText = trait;
+                        totalCollected++;
+                        document.getElementById('score').innerText = totalCollected;
+                        
+                        if(totalCollected === 10) showToast("Every star reminds me of your light...");
+                        if(totalCollected === 20) showToast("You make the ordinary feel magical...");
+                        if(totalCollected === 30) showToast("I could get lost in these reasons forever...");
+                        if(totalCollected === 40) showToast("Almost there... just like you're always in my heart.");
+
+                        setTimeout(() => { this.style.opacity = '0'; }, 1500);
+
+                        const remainingInBatch = container.querySelectorAll('.orb:not(.clicked)').length - 1;
+                        if(remainingInBatch === 0) {
+                            currentBatchIndex++;
+                            setTimeout(() => {
+                                if(currentBatchIndex * batchSize < traits.length) loadBatch(); 
+                                else startLoading(); 
+                            }, 1200);
+                        }
+                    }
+                };
+                container.appendChild(orb);
+            });
+        }
+
+        function startLoading() {
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-game').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('screen-loading').classList.remove('hidden');
+                document.getElementById('screen-loading').classList.add('active');
+                
+                let bar = document.getElementById('loader-bar');
+                let text = document.getElementById('loading-text');
+                let width = 0;
+                
+                let interval = setInterval(() => {
+                    width += 2;
+                    bar.style.width = width + '%';
+                    
+                    if(width === 20) text.innerText = `Analyzing ${herName}'s 50 wonderful traits...`;
+                    if(width === 55) text.innerText = 'Calculating happiness levels...';
+                    if(width === 85) text.innerText = `Matching with ${herName}'s beautiful smile... ✨`;
+                    
+                    if(width >= 100) {
+                        clearInterval(interval);
+                        setTimeout(showDramaticSentence, 1000);
+                    }
+                }, 50);
+            }, 800);
+        }
+
+        function showDramaticSentence() {
+            document.getElementById('screen-loading').classList.remove('active');
+            document.getElementById('screen-loading').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('screen-sentence').classList.remove('hidden');
+                document.getElementById('screen-sentence').classList.add('active');
+                
+                setTimeout(showFinalMessage, 6000);
+            }, 800);
+        }
+
+        function showFinalMessage() {
+            document.getElementById('screen-sentence').classList.remove('active');
+            document.getElementById('screen-sentence').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('screen-final').classList.remove('hidden');
+                document.getElementById('screen-final').classList.add('active');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
